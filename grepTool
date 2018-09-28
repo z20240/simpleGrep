@@ -27,14 +27,14 @@ sub real
 #會拿到四個參數
 my ($search , $fileType , $path , $grepNext) = @_;
 
-$fileType ||= 'perl,php,js,vue,ts';
-$path 	  ||= '*';
+$fileType ||= 'perl,php,js,css,html,log,vue,ts,json';
+$path     ||= '*';
 $grepNext ||= '';
 
 my (@command_path , $command_fileType , $command_option , $command_search , $command_grepNext);
 
 
-# fileType 目前先設定 php perl js css html log
+# fileType 目前先設定 php perl js css html log json
 $command_fileType = processFileType($fileType);
 
 # path 目前設定
@@ -82,25 +82,20 @@ sub fileType2fileExt {
     my ($fileType) = shift;
     my $out;
 
-    #  my $fileType = {
-    #      php => "php",
-    #      perl => "pl,pm",
-    #      js => "js",
-    #      css => "css",
-    #      vue => "vue",
-    #      log => "log",
-    #  };
+    my $fileTypeMap = {
+        php =>  "php",
+        perl => "pl,pm",
+        js =>   "js",
+        css =>  "css",
+        html => "html",
+        ts =>   "ts",
+        vue =>  "vue",
+        log =>  "log",
+        json => "json",
+    };
 
-    #  $out = $fileType->{$fileType};
-    given ($fileType){
-        when('php')   { $out = "php"; }
-        when('perl')  { $out = "pl,pm"; }
-        when('js')    { $out = "js"; }
-        when('ts')    { $out = "ts"; }
-        when('css')   { $out = "css"; }
-        when('vue')    { $out = "vue"; }
-        when('log')   { $out = "log"; }
-    }
+    $out = $fileTypeMap->{$fileType};
+
     return $out if $out;
 }
 
@@ -145,6 +140,6 @@ sub usage
 
         [ -t / --type ] 檔案類型
             (可以只查找特定的檔案類型)
-            \. => 目前設定可查找的檔案類型為：php perl js css html log vue ts
+            \. => 目前設定可查找的檔案類型為：php perl js css html log vue ts json
 .
 }
