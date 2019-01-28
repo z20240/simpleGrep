@@ -27,14 +27,14 @@ sub real
 #會拿到四個參數
 my ($search , $fileType , $path , $grepNext) = @_;
 
-$fileType ||= 'perl,php,js,css,html,log,vue,ts,json';
+$fileType ||= 'perl,php,js,css,html,log,vue,ts,json,xml';
 $path     ||= '*';
 $grepNext ||= '';
 
 my (@command_path , $command_fileType , $command_option , $command_search , $command_grepNext);
 
 
-# fileType 目前先設定 php perl js css html log json
+# fileType 目前先設定 php perl js css html log json xml
 $command_fileType = processFileType($fileType);
 
 # path 目前設定
@@ -73,6 +73,7 @@ sub processFileType {
         map{
             $str.= ' --include=\*.'.$_;
             $str.= ' --exclude=\*.min.'.$_;
+            $str.= ' --exclude=\*.d.'.$_;
         } split(',', fileType2fileExt($_))
     } @types;
     return $str;
@@ -92,6 +93,7 @@ sub fileType2fileExt {
         vue =>  "vue",
         log =>  "log",
         json => "json",
+        xml => "xml",
     };
 
     $out = $fileTypeMap->{$fileType};
@@ -140,6 +142,6 @@ sub usage
 
         [ -t / --type ] 檔案類型
             (可以只查找特定的檔案類型)
-            \. => 目前設定可查找的檔案類型為：php perl js css html log vue ts json
+            \. => 目前設定可查找的檔案類型為：php perl js css html log vue ts json xml
 .
 }
