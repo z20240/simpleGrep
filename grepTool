@@ -76,6 +76,7 @@ sub processFileType {
         map{
             $str.= ' --include=\*.'.$_;
             $str.= ' --exclude=\*.min.'.$_;
+            $str.= ' --exclude=\*.d.'.$_;
         } split(',', fileType2fileExt($_))
     } @types;
     return $str;
@@ -95,6 +96,7 @@ sub fileType2fileExt {
         vue =>  "vue",
         log =>  "log",
         json => "json",
+        xml => "xml",
     };
 
     $out = $fileTypeMap->{$fileType} || $fileType;
@@ -147,6 +149,6 @@ sub usage
 
         [ -t / --type ] 檔案類型
             (可以只查找特定的檔案類型)
-            \. => 目前設定可查找的檔案類型為：php perl js css html log vue ts json
+            \. => 目前設定可查找的檔案類型為：php perl js css html log vue ts json xml
 .
 }
