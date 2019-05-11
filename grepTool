@@ -24,44 +24,47 @@ real($ARGV[0], $type , $path ,$next);
 sub real
 {
 
-#會拿到四個參數
-my ($search , $fileType , $path , $grepNext) = @_;
+    #會拿到四個參數
+    my ($search , $fileType , $path , $grepNext) = @_;
 
-$fileType ||= 'perl,php,js,vue,ts';
-$path 	  ||= '*';
-$grepNext ||= '';
+    # 不再預設只搜尋這些檔案
+    # $fileType //= 'perl,php,js,css,html,log,vue,ts,json';
+    $path     ||= '*';
+    $grepNext ||= '';
 
-my (@command_path , $command_fileType , $command_option , $command_search , $command_grepNext);
+    my (@command_path , $command_fileType , $command_option , $command_search , $command_grepNext);
 
 
-# fileType 目前先設定 php perl js css html log
-$command_fileType = processFileType($fileType);
+    # fileType 目前先設定 php perl js css html log json
+    $command_fileType = processFileType($fileType);
+    # path 目前設定
+    #   . => 當下目錄
+    #   指定目錄 => 完整目錄 ex ~/Desktop/XXX/XXX
+    #   指定目錄 => 非完整目錄 ex ~/Downloads/XXX/XXX
 
-# path 目前設定
-#   . => 當下目錄
-#   指定目錄 => 完整目錄 ex ~/Desktop/XXX/XXX
-#   指定目錄 => 非完整目錄 ex ~/Downloads/XXX/XXX
+    # 判斷要search 的 path
+    # 有幾總情況
+    @command_path = processpath($path);
 
-# 判斷要search 的 path
-# 有幾總情況
-@command_path = processpath($path);
+    # 設定屬性
+    $command_option = '-nsrHIi';
 
-# 設定屬性
-$command_option = '-nsrHIi';
+    # 要搜尋的字串
+    $command_search = $search;
 
-# 要搜尋的字串
-$command_search = $search;
+    # next command
+    if ($grepNext) {
+        $command_grepNext = " | grep --color=auto $grepNext ";
+        $command_grepNext .= "| GREP_COLOR=\"1;33\" egrep --color=always '$grepNext' ";
+    }
 
-#next command
-$command_grepNext = " | grep --color=auto -si $grepNext " if($grepNext);
-
-# 產出command
-map{
-		my $cmd = creatCommand($_ , $command_fileType , $command_option , $command_search , $command_grepNext);
-		system($cmd);
-		green_say("search done");
-	}@command_path;
-# die;
+    # 產出command
+    map {
+        my $cmd = creatCommand($_ , $command_fileType , $command_option , $command_search , $command_grepNext);
+        system($cmd);
+        green_say("search done");
+    } @command_path;
+    # die;
 
 }
 
@@ -82,25 +85,20 @@ sub fileType2fileExt {
     my ($fileType) = shift;
     my $out;
 
-    #  my $fileType = {
-    #      php => "php",
-    #      perl => "pl,pm",
-    #      js => "js",
-    #      css => "css",
-    #      vue => "vue",
-    #      log => "log",
-    #  };
+    my $fileTypeMap = {
+        php =>  "php",
+        perl => "pl,pm",
+        js =>   "js",
+        css =>  "css",
+        html => "html",
+        ts =>   "ts",
+        vue =>  "vue",
+        log =>  "log",
+        json => "json",
+    };
 
-    #  $out = $fileType->{$fileType};
-    given ($fileType){
-        when('php')   { $out = "php"; }
-        when('perl')  { $out = "pl,pm"; }
-        when('js')    { $out = "js"; }
-        when('ts')    { $out = "ts"; }
-        when('css')   { $out = "css"; }
-        when('vue')    { $out = "vue"; }
-        when('log')   { $out = "log"; }
-    }
+    $out = $fileTypeMap->{$fileType} || $fileType;
+
     return $out if $out;
 }
 
@@ -120,15 +118,19 @@ sub processpath {
 }
 
 sub creatCommand {
- my ($command_path , $command_fileType , $command_option , $command_search , $command_grepNext) = @_;
- my $cmd = "grep $command_option '$command_search' $command_path $command_fileType $command_grepNext --color=always | cut -c1-200";
- green_say($cmd);
- return $cmd;
+    my ($command_path , $command_fileType , $command_option , $command_search , $command_grepNext) = @_;
+    # 自動
+    my $cmd = "grep $command_option '$command_search' $command_path $command_fileType --color=always $command_grepNext ";
+    $cmd .=   "| GREP_COLOR=\"1;36\" egrep --color=always \"^\\S+:\" ";
+    $cmd .=   "| GREP_COLOR=\"1;35\" egrep --color=always \":\\d+:\" ";
+    $cmd .=   "| cut -c1-200 ";
+    green_say($cmd);
+    return $cmd;
 }
 
 sub green_say {
-my ($str) = @_;
-print "\033[1;32m$str\033[m\n";
+    my ($str) = @_;
+    print "\033[1;32m$str\033[m\n";
 }
 
 sub usage
@@ -145,6 +147,6 @@ sub usage
 
         [ -t / --type ] 檔案類型
             (可以只查找特定的檔案類型)
-            \. => 目前設定可查找的檔案類型為：php perl js css html log vue ts
+            \. => 目前設定可查找的檔案類型為：php perl js css html log vue ts json
 .
 }
