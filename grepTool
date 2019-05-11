@@ -7,11 +7,18 @@ use File::Basename;
 use Data::Dumper;
 use strict;
 
-my($type, $path , $next , $help );
+my ($type, $path, $next, $exclude_fpath, $exclude_file, $help);
 
-GetOptions("type=s", \$type, "path=s", \$path , "next=s", \$next ,"help", \$help);
+GetOptions(
+    "type=s" => \$type,
+    "path=s" => \$path,
+    "next=s" => \$next,
+    "exclude-dir=s" => \$exclude_fpath,
+    "exclude-file=s" => \$exclude_file,
+    "help" => \$help
+);
 
-print "ZZ,t:$type,p:$path,n:$next,h:$help\n";
+print "ZZ, t:$type, p:$path, n:$next, exclude-dir:$exclude_fpath, exclude-file:$exclude_file, h:$help\n";
 
 if($help)
 {
@@ -19,13 +26,12 @@ if($help)
     exit();
 }
 
-real($ARGV[0], $type , $path ,$next);
+real($ARGV[0], $type , $path ,$next, $exclude_fpath, $exclude_file);
 
-sub real
-{
+sub real {
 
     #會拿到四個參數
-    my ($search , $fileType , $path , $grepNext) = @_;
+    my ($search , $fileType, $path, $grepNext, $exclude_fpath, $exclude_file) = @_;
 
     # 不再預設只搜尋這些檔案
     # $fileType //= 'perl,php,js,css,html,log,vue,ts,json';
@@ -34,16 +40,15 @@ sub real
 
     my (@command_path , $command_fileType , $command_option , $command_search , $command_grepNext);
 
-
     # fileType 目前先設定 php perl js css html log json
-    $command_fileType = processFileType($fileType);
+    $command_fileType = processFileType($fileType, $exclude_fpath, $exclude_file);
     # path 目前設定
     #   . => 當下目錄
     #   指定目錄 => 完整目錄 ex ~/Desktop/XXX/XXX
     #   指定目錄 => 非完整目錄 ex ~/Downloads/XXX/XXX
 
     # 判斷要search 的 path
-    # 有幾總情況
+    # 有幾種情況
     @command_path = processpath($path);
 
     # 設定屬性
@@ -69,16 +74,20 @@ sub real
 }
 
 sub processFileType {
-    my $fileType = shift;
+    my ($fileType, $exclude_fpath, $exclude_file) = @_;
     my @types = split(',', $fileType);
     my $str;
-    map{
-        map{
+    map {
+        map {
             $str.= ' --include=\*.'.$_;
             $str.= ' --exclude=\*.min.'.$_;
             $str.= ' --exclude=\*.d.'.$_;
-        } split(',', fileType2fileExt($_))
+        } split(',', fileType2fileExt($_));
     } @types;
+
+    map { $str.= ' --exclude-dir=' . $_ } split(',', $exclude_fpath) if $exclude_fpath;
+    map { $str.= ' --exclude=' . $_ } split(',', $exclude_file) if $exclude_file;
+
     return $str;
 }
 
@@ -109,10 +118,6 @@ sub processpath {
 
     if($path eq '.'){
         return ('*');
-    } elsif ($path eq 'toppath') {
-        return ('~/toppath');
-    } elsif ($path eq 'toppath2') {
-        return ('~/toppath2');
     } else {
         return split(',',$path);
     }
@@ -135,8 +140,7 @@ sub green_say {
     print "\033[1;32m$str\033[m\n";
 }
 
-sub usage
-{
+sub usage {
     print <<".";
 
         [ -p / --path] path 目前設定
@@ -146,6 +150,10 @@ sub usage
 
         [ -n / --next ] 想查詢的下一個關鍵字
             可以在查找完一個關鍵字後，以此結果為立基查找下一個關鍵字.
+
+        [ --exclude-dir ] 忽略此目錄下的檔案，可以使用 ',' 連接多個目錄
+
+        [ --exclude-file ] 忽略此檔案，可以使用 ',' 連接多個檔案
 
         [ -t / --type ] 檔案類型
             (可以只查找特定的檔案類型)
