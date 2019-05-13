@@ -128,8 +128,8 @@ sub creatCommand {
     my ($command_path , $command_fileType , $command_option , $command_search , $command_grepNext) = @_;
     # 自動
     my $cmd = "grep $command_option '$command_search' $command_path $command_fileType --color=always $command_grepNext ";
-    $cmd .=   "| GREP_COLOR=\"1;36\" egrep --color=always \"^\\S+:\" ";
-    $cmd .=   "| GREP_COLOR=\"1;35\" egrep --color=always \":\\d+:\" ";
+    # $cmd .=   "| GREP_COLOR=\"1;36\" egrep --color=always \"^\\S+:\" ";
+    # $cmd .=   "| GREP_COLOR=\"1;35\" egrep --color=always \":\\d+:\" ";
     $cmd .=   "| cut -c1-200 ";
     green_say($cmd);
     return $cmd;
