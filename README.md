@@ -12,3 +12,13 @@
 
 
 - **[ -t / --type ]** 檔案類型，可以只查找特定的檔案類型
+
+
+## Install
+
+
+```
+git clone https://github.com/z20240/simpleGrep ~/.simpleGrep
+
+sudo ln -s ~/.simpleGrep/grepTool /usr/local/bin/grepTool
+```
